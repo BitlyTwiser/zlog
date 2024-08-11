@@ -1,4 +1,5 @@
 const std = @import("std");
+const zap = @import("zap");
 const print = std.debug.print;
 
 const posts_path: []const u8 = "./src/posts";
@@ -9,12 +10,23 @@ const posts_path: []const u8 = "./src/posts";
 // Each blob is going to be past in via Mustache, then the user can click the link rendering the content (Markdown)
 // Thus we:
 // 1. Dynamically build the routes
-// 2. Render the content for each blog post
+// 2. Render the content for each blog post - This is more annoying as its markdown, so we need to parse it
 // 3. Allow users to click content
 // 4. Use no web framework, only zig
 // We still need a github action to deploy (probably to digital ocean)
 // Get a DNS nam reserved
 // Setup HTTPS with letrencrypt
+
+fn on_request(r: zap.Request) void {
+    if (r.path) |the_path| {
+        std.debug.print("PATH: {s}\n", .{the_path});
+    }
+
+    if (r.query) |the_query| {
+        std.debug.print("QUERY: {s}\n", .{the_query});
+    }
+    r.sendBody("<html><body><h1>Hello from ZAP!!!</h1><code>std = @import(\"std\")</code></body></html>") catch return;
+}
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
@@ -47,4 +59,19 @@ pub fn main() !void {
         const file_data = try directory.readFile(path, file_buf);
         print("{s}", .{file_data});
     }
+
+    var listener = zap.HttpListener.init(.{
+        .port = 3000,
+        .on_request = on_request,
+        .log = true,
+    });
+    try listener.listen();
+
+    std.debug.print("Listening on 0.0.0.0:3000\n", .{});
+
+    // start worker threads
+    zap.start(.{
+        .threads = 2,
+        .workers = 2,
+    });
 }

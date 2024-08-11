@@ -43,6 +43,11 @@ pub fn build(b: *std.Build) void {
         .openssl = false, // set to true to enable TLS support
     });
 
+    // Add the paths to the C headers here for markdown serialization
+    // const lazy_path_inner = std.Build.LazyPath.path(lazy_path: LazyPath, b: *Build, sub_path: []const u8)
+    // .src_path = "src/markdown_parser/
+    exe.linkLibC();
+
     exe.root_module.addImport("zap", zap.module("zap"));
 
     // This declares intent for the executable to be installed into the
