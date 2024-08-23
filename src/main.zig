@@ -1,8 +1,18 @@
 const std = @import("std");
 const zap = @import("zap");
+const koino = @import("koino");
 const print = std.debug.print;
 
 const posts_path: []const u8 = "./src/posts";
+
+const options = .{
+    .extensions = .{
+        .autolink = true,
+        .strikethrough = true,
+        .table = true,
+    },
+    .render = .{ .hard_breaks = true, .unsafe = true },
+};
 
 // Parse all files, split MD, these are the routes.
 // Read all the markdown, this is the content of each blob post
@@ -35,10 +45,9 @@ pub fn main() !void {
 
     const directory = std.fs.cwd();
 
-    const options = std.fs.Dir.OpenDirOptions{ .iterate = true, .access_sub_paths = true };
-
-    var opened_dir = directory.openDir(posts_path, options) catch |open_err| {
-        print("error opening directory for blob posts {}", .{open_err});
+    const f_options = std.fs.Dir.OpenDirOptions{ .iterate = true, .access_sub_paths = true };
+    var opened_dir = directory.openDir(posts_path, f_options) catch |open_err| {
+        print("error opening directory for blog posts {}", .{open_err});
         return;
     };
     defer opened_dir.close();
@@ -54,10 +63,30 @@ pub fn main() !void {
         // const file_buf: []u8 = undefined;
 
         const file_buf = try allocator.alloc(u8, buffer_size);
+
+        // Capture each entry name, these will be the routes displayd
+        print("{s}\n", .{entry.name});
         const path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ posts_path, entry.name });
 
         const file_data = try directory.readFile(path, file_buf);
-        print("{s}", .{file_data});
+
+        var parser = try koino.parser.Parser.init(allocator, options);
+        defer parser.deinit();
+
+        try parser.feed(file_data);
+
+        var doc = try parser.finish();
+        defer doc.deinit();
+
+        const buffer = try allocator.alloc(u8, 1024); // adjust size based on expected data
+        defer allocator.free(buffer);
+
+        var out_stream = std.io.fixedBufferStream(buffer);
+        const writer = out_stream.writer();
+
+        try koino.html.print(writer, allocator, options, doc);
+
+        print("{s}", .{out_stream.getWritten()});
     }
 
     var listener = zap.HttpListener.init(.{

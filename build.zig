@@ -42,6 +42,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .openssl = false, // set to true to enable TLS support
     });
+    const koino_pkg = b.dependency("koino", .{ .optimize = optimize, .target = target });
 
     // Add the paths to the C headers here for markdown serialization
     // const lazy_path_inner = std.Build.LazyPath.path(lazy_path: LazyPath, b: *Build, sub_path: []const u8)
@@ -49,6 +50,7 @@ pub fn build(b: *std.Build) void {
     exe.linkLibC();
 
     exe.root_module.addImport("zap", zap.module("zap"));
+    exe.root_module.addImport("koino", koino_pkg.module("koino"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
