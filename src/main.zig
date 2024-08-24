@@ -48,12 +48,13 @@ fn generic_request(r: zap.Request) void {
 }
 
 fn not_found(req: zap.Request) void {
-    std.debug.print("not found handler", .{});
-
     req.sendBody("Not found") catch return;
 }
 
-fn openHomeHTML() !void {}
+// parser code to inject html/css into pates
+fn injectCSS() !void {}
+
+fn injectNavBar() !void {}
 
 // @ToDo(Clean up code, dynamically insert/parse the CSS and the header bar into the markdown pages, make cli tool for deploying. Find somewhere to host code)
 // Add timestamp to each article based on when the file was written - THis is a small comment on the markdown page itself perhaps??
@@ -88,7 +89,6 @@ pub fn main() !void {
         const file_buf = try allocator.alloc(u8, buffer_size);
 
         // Capture each entry name, these will be the routes displayd
-        print("{s}\n", .{entry.name});
         const request_path = entry.name;
         const path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ posts_path, entry.name });
 
@@ -115,17 +115,11 @@ pub fn main() !void {
         // defer allocator.free(request_path_simple);
 
         _ = std.mem.replace(u8, request_path, ".md", "", request_path_simple);
-        print("{s}", .{request_path_simple});
         // Add / into route
         const request_route = try std.fmt.allocPrint(allocator, "/{s}", .{request_path_simple});
 
-        print("route should be at - {s}", .{request_route});
-        // Have a unbount func per each path, the fun will check the incoming route, match it to a StringHashMap of string html content to render to the user
         try simpleRouter.handle_func_unbound(request_route, generic_request);
         try routes.put(request_route, out_stream.getWritten());
-        // try simpleRouter.handle_func(request_path, &somePackage, &SomePackage.getA);
-
-        // print("{s}", .{out_stream.getWritten()});
     }
 
     var listener = zap.HttpListener.init(.{

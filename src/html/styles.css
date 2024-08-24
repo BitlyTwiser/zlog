@@ -2,30 +2,53 @@
 body {
     font-family: 'Roboto', sans-serif;
     line-height: 1.6;
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: #e5e5e3; /* Light gray with a subtle hint of fleshy color */
+    color: #000000; /* Black text */
     padding: 20px;
+    max-width: 900px; /* Limit the page width */
+    margin: 0 auto; /* Center the page content */
+}
+
+/* Compact Navigation Bar */
+nav {
+    background-color: #2b2b2b; /* Dark nav background */
+    padding: 10px 20px; /* Adjust padding for a compact look */
+    text-align: center;
+    border-radius: 10px; /* Rounded corners for a clean look */
+    max-width: 600px; /* Limit width of the nav bar */
+    margin: 0 auto 40px auto; /* Center the nav and add space below it */
+}
+
+nav a {
+    color: #e5e5e3; /* Light gray for nav links */
+    text-decoration: none;
+    font-size: 1em; /* Adjust size to make it more compact */
+    margin: 0 10px; /* Reduce the margin for a more compact layout */
+    padding: 8px 12px; /* Add some padding around each link */
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #d8d6d4; /* Slightly darker gray on hover */
 }
 
 /* Headers */
 h1, h2, h3 {
-    color: #2c3e50;
+    color: #000000; /* Black for headers */
     text-align: center;
 }
 
 h1 {
     font-size: 3rem;
     font-weight: 700;
-    text-transform: uppercase;
     margin-bottom: 20px;
-    color: #3498db;
-    letter-spacing: 2px;
+    color: #2b2b2b; /* Dark gray */
 }
 
 h2 {
     font-size: 2rem;
     margin-bottom: 10px;
-    color: #e74c3c;
+    color: #3b3b3b; /* Slightly lighter gray */
 }
 
 h3 {
@@ -33,16 +56,23 @@ h3 {
     margin-bottom: 10px;
 }
 
+/* Center Articles */
+.article-content {
+    max-width: 700px; /* Limit the width of articles */
+    margin: 0 auto; /* Center the article content */
+    padding: 20px; /* Add padding around articles */
+}
+
 /* Links */
 a {
-    color: #2981b9;
+    color: #3d3d3d; /* Muted gray for links */
     text-decoration: none;
     font-weight: bold;
     transition: color 0.2s ease;
 }
 
 a:hover {
-    color: #e74c3c;
+    color: #606060; /* Slightly darker gray on hover */
 }
 
 /* Lists */
@@ -52,21 +82,21 @@ ul {
 }
 
 ul li {
-    background: #ecf0f1;
+    background: #e0dedc; /* Subtle gray tone for list items */
     margin: 10px 0;
     padding: 10px;
-    border-left: 5px solid #3498db;
+    border-left: 5px solid #2b2b2b; /* Darker gray accent */
     transition: background-color 0.3s ease;
 }
 
 ul li:hover {
-    background: #bdc3c7;
+    background: #d8d6d4; /* Darker gray tone on hover */
 }
 
 /* Code Blocks */
 pre {
-    background: #2c3e50;
-    color: #ecf0f1;
+    background: #2e2e2e; /* Dark background for code blocks */
+    color: #f8f8f2; /* Light text for contrast */
     padding: 20px;
     border-radius: 5px;
     font-size: 1rem;
@@ -74,25 +104,25 @@ pre {
 }
 
 code {
-    background: #ecf0f1;
+    background: #dcdcdc; /* Light gray background for inline code */
     padding: 2px 5px;
     border-radius: 3px;
-    color: #e74c3c;
+    color: #2e2e2e; /* Dark gray for code text */
     font-family: 'Courier New', Courier, monospace;
 }
 
 /* Horizontal Rule */
 hr {
     border: none;
-    border-top: 2px solid #3498db;
+    border-top: 2px solid #2b2b2b; /* Dark horizontal rule */
     margin: 30px 0;
 }
 
 /* Buttons */
 .btn {
     display: inline-block;
-    background: #3498db;
-    color: #fff;
+    background: #2b2b2b; /* Dark background for buttons */
+    color: #e5e5e3; /* Light gray text */
     padding: 10px 20px;
     border-radius: 5px;
     text-transform: uppercase;
@@ -101,34 +131,43 @@ hr {
 }
 
 .btn:hover {
-    background: #2980b9;
+    background: #444444; /* Slightly lighter dark background on hover */
 }
 
 /* Footer */
 footer {
     text-align: center;
     padding: 20px;
-    background-color: #34495e;
-    color: #ecf0f1;
+    background-color: #2b2b2b; /* Dark footer background */
+    color: #e5e5e3; /* Light gray text */
     margin-top: 50px;
     border-radius: 10px;
 }
 
-
-nav {
-    background-color: #3498db;
-    padding: 15px;
-    text-align: center;
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #dcdcdc; /* Light gray background for tables */
+    color: #2b2b2b; /* Dark text */
 }
 
-nav a {
-    color: white;
-    text-decoration: none;
-    font-size: 1.2em;
-    margin: 0 15px;
-    transition: color 0.3s ease;
+th, td {
+    padding: 10px;
+    border: 1px solid #2b2b2b; /* Darker border for table cells */
 }
 
-nav a:hover {
-    color: #e74c3c;
+th {
+    background: #e0dedc; /* Slightly darker background for table headers */
+}
+
+td {
+    background: #f0efec;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-bottom: 20px;
 }
