@@ -4,7 +4,10 @@ const koino = @import("koino");
 const print = std.debug.print;
 
 const posts_path: []const u8 = "./src/posts";
-const css_path: []const u8 = "<link rel=\"stylesheet\" href=\"html/styles.css\">";
+const html_path: []const u8 = "./src/html";
+const css_path_file: []const u8 = "./src/html/styles.css";
+const nav_bar_path: []const u8 = "./src/html/nav_bar.html";
+const css_path_dynamic: []const u8 = "<link rel=\"stylesheet\" href=\"html/styles.css\">";
 
 const options = .{
     .extensions = .{
@@ -20,6 +23,49 @@ const generic_request_manifest = struct {
     allocator: std.mem.Allocator,
 };
 
+const directory_opener = struct {
+    const Self = @This();
+
+    directory: std.fs.Dir,
+    opened_directory: std.fs.Dir,
+
+    fn deinit(self: *Self) void {
+        self.opened_directory.close();
+    }
+};
+
+// Record a rather girthy allotment for the buffer for reading files
+const buffer_size: u32 = 1024 * 1024 * 2;
+
+const NotFound = error{PostsNotFound};
+
+const InjectionType = enum {
+    CSS,
+    NavBar,
+
+    fn path(self: InjectionType) []const u8 {
+        switch (self) {
+            .CSS => {
+                return css_path_file;
+            },
+            .NavBar => {
+                return nav_bar_path;
+            },
+        }
+    }
+
+    fn bufferSize(self: InjectionType) u32 {
+        switch (self) {
+            .CSS => {
+                return 1024 * 4;
+            },
+            .NavBar => {
+                return 900;
+            },
+        }
+    }
+};
+
 var routes: std.StringHashMap([]const u8) = undefined;
 
 // Parse all files, split MD, these are the routes.
@@ -27,13 +73,13 @@ var routes: std.StringHashMap([]const u8) = undefined;
 // Push to the web server for both the main HTML page and the inner contents
 // Each blob is going to be past in via Mustache, then the user can click the link rendering the content (Markdown)
 // Thus we:
-// 1. Dynamically build the routes
-// 2. Render the content for each blog post - This is more annoying as its markdown, so we need to parse it
-// 3. Allow users to click content
-// 4. Use no web framework, only zig
-// We still need a github action to deploy (probably to digital ocean)
-// Get a DNS nam reserved
-// Setup HTTPS with letrencrypt
+// 1. Dynamically build the routes [x]
+// 2. Render the content for each blog post - This is more annoying as its markdown, so we need to parse it [x]
+// 3. Allow users to click content [x]?
+// 4. Use no web framework, only zig [x]
+// We still need a github action to deploy (probably to digital ocean) []
+// Get a DNS nam reserved []
+// Setup HTTPS with letrencrypt []
 
 fn generic_request(r: zap.Request) void {
     // Lookup incoming route in the map, find html, return html
@@ -51,37 +97,39 @@ fn not_found(req: zap.Request) void {
     req.sendBody("Not found") catch return;
 }
 
-// parser code to inject html/css into pates
-fn injectCSS() !void {}
+fn allocateAndReturnFileData(allocator: std.mem.Allocator, i_type: InjectionType) ![]u8 {
+    const dir = std.fs.cwd();
 
-fn injectNavBar() !void {}
+    const file_buf = try allocator.alloc(u8, i_type.bufferSize());
+    const bytes_read = try dir.readFile(i_type.path(), file_buf);
 
-// @ToDo(Clean up code, dynamically insert/parse the CSS and the header bar into the markdown pages, make cli tool for deploying. Find somewhere to host code)
-// Add timestamp to each article based on when the file was written - THis is a small comment on the markdown page itself perhaps??
+    // RE-alloc to fit how many bytes were actually read
+    return try allocator.realloc(file_buf, bytes_read.len);
+}
 
-pub fn main() !void {
-    const allocator = std.heap.page_allocator;
-
-    routes = std.StringHashMap([]const u8).init(allocator);
-    // Record a rather girthy allotment for the buffer for reading files
-    const buffer_size: u32 = 1024 * 1024 * 2;
-
+fn openDirectory(path: []const u8) NotFound!directory_opener {
     const directory = std.fs.cwd();
 
     const f_options = std.fs.Dir.OpenDirOptions{ .iterate = true, .access_sub_paths = true };
-    var opened_dir = directory.openDir(posts_path, f_options) catch |open_err| {
-        print("error opening directory for blog posts {}", .{open_err});
+    const opened_dir = directory.openDir(path, f_options) catch {
+        return NotFound.PostsNotFound;
+    };
+
+    return directory_opener{ .directory = directory, .opened_directory = opened_dir };
+}
+
+fn setRoutes(allocator: std.mem.Allocator, simpleRouter: *zap.Router) !void {
+    var opened_dir = openDirectory(posts_path) catch |e| {
+        switch (e) {
+            NotFound.PostsNotFound => {
+                print("error opening directory for blog posts {s} make sure path exists", .{posts_path});
+            },
+        }
         return;
     };
-    defer opened_dir.close();
+    defer opened_dir.deinit();
 
-    var simpleRouter = zap.Router.init(allocator, .{
-        .not_found = not_found,
-    });
-    defer simpleRouter.deinit();
-
-    // Set all the iterators as vars to remove const allocation
-    var iterator = opened_dir.iterateAssumeFirstIteration();
+    var iterator = opened_dir.opened_directory.iterateAssumeFirstIteration();
     while (try iterator.next()) |entry| {
         // std.fmt.bufPrint(buf: []u8, comptime fmt: []const u8, args: anytype)
         // const file_buf: []u8 = undefined;
@@ -92,35 +140,60 @@ pub fn main() !void {
         const request_path = entry.name;
         const path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ posts_path, entry.name });
 
-        const file_data = try directory.readFile(path, file_buf);
+        const file_data = try opened_dir.directory.readFile(path, file_buf);
 
+        // Inject both the css and the navbar here
+        const css = try allocateAndReturnFileData(allocator, InjectionType.CSS);
+        const nav_bar = try allocateAndReturnFileData(allocator, InjectionType.NavBar);
+
+        const dyanmic_html = try std.fmt.allocPrint(allocator, "{s}\n{s}\n{s}", .{ nav_bar, file_data, css });
+
+        // Actual Markdown parsing, thanks Koino
         var parser = try koino.parser.Parser.init(allocator, options);
         defer parser.deinit();
 
-        try parser.feed(file_data);
+        try parser.feed(dyanmic_html);
 
         var doc = try parser.finish();
         defer doc.deinit();
 
+        // Buffer allocations to pass the html data around into the routes
         const buffer = try allocator.alloc(u8, buffer_size); // adjust size based on expected data
         // defer allocator.free(buffer);
-
         var out_stream = std.io.fixedBufferStream(buffer);
         const writer = out_stream.writer();
 
         try koino.html.print(writer, allocator, options, doc);
 
-        // Replace MD
+        // Replace MD for route name
         const request_path_simple = try allocator.alloc(u8, request_path.len - 3);
         // defer allocator.free(request_path_simple);
 
         _ = std.mem.replace(u8, request_path, ".md", "", request_path_simple);
-        // Add / into route
+        // Add / into route(s)
         const request_route = try std.fmt.allocPrint(allocator, "/{s}", .{request_path_simple});
 
+        // Store in router and in the routes StringsHashMap
         try simpleRouter.handle_func_unbound(request_route, generic_request);
         try routes.put(request_route, out_stream.getWritten());
     }
+}
+
+// @ToDo(Clean up code, dynamically insert/parse the CSS and the header bar into the markdown pages, make cli tool for deploying. Find somewhere to host code)
+// Add timestamp to each article based on when the file was written - THis is a small comment on the markdown page itself perhaps??
+pub fn main() !void {
+    const allocator = std.heap.page_allocator;
+
+    // Records all routes
+    routes = std.StringHashMap([]const u8).init(allocator);
+
+    // Create zap routes and routes
+    var simpleRouter = zap.Router.init(allocator, .{
+        .not_found = not_found,
+    });
+    defer simpleRouter.deinit();
+
+    try setRoutes(allocator, &simpleRouter);
 
     var listener = zap.HttpListener.init(.{
         .port = 3000,
