@@ -77,9 +77,10 @@ var routes: std.StringHashMap([]const u8) = undefined;
 // 2. Render the content for each blog post - This is more annoying as its markdown, so we need to parse it [x]
 // 3. Allow users to click content [x]?
 // 4. Use no web framework, only zig [x]
-// We still need a github action to deploy (probably to digital ocean) []
-// Get a DNS nam reserved []
-// Setup HTTPS with letrencrypt []
+// 5. Dynamically insert blog posts now []
+// 6.  github action to deploy (probably to digital ocean) []
+// 7. Get a DNS nam reserved []
+// 8. Setup HTTPS with letrencrypt []
 
 fn generic_request(r: zap.Request) void {
     // Lookup incoming route in the map, find html, return html
@@ -103,8 +104,13 @@ fn allocateAndReturnFileData(allocator: std.mem.Allocator, i_type: InjectionType
     const file_buf = try allocator.alloc(u8, i_type.bufferSize());
     const bytes_read = try dir.readFile(i_type.path(), file_buf);
 
+    const reallocated_buf = try allocator.realloc(file_buf, bytes_read.len);
     // RE-alloc to fit how many bytes were actually read
-    return try allocator.realloc(file_buf, bytes_read.len);
+    if (i_type == InjectionType.CSS) {
+        const css_data = try std.fmt.allocPrint(allocator, "<style>\n{s}\n</style>", .{reallocated_buf});
+        return try allocator.realloc(css_data, bytes_read.len);
+    }
+    return reallocated_buf;
 }
 
 fn openDirectory(path: []const u8) NotFound!directory_opener {
