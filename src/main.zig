@@ -14,6 +14,13 @@ const options = .{
     .render = .{ .hard_breaks = true, .unsafe = true },
 };
 
+const generic_request_manifest = struct {
+    buffer: null,
+    allocator: std.mem.Allocator,
+};
+
+var routes: std.StringHashMap([]const u8) = undefined;
+
 // Parse all files, split MD, these are the routes.
 // Read all the markdown, this is the content of each blob post
 // Push to the web server for both the main HTML page and the inner contents
@@ -27,19 +34,30 @@ const options = .{
 // Get a DNS nam reserved
 // Setup HTTPS with letrencrypt
 
-fn on_request(r: zap.Request) void {
-    if (r.path) |the_path| {
-        std.debug.print("PATH: {s}\n", .{the_path});
+fn generic_request(r: zap.Request) void {
+    // Lookup incoming route in the map, find html, return html
+    if (r.path) |path| {
+        if (routes.get(path)) |html_body| {
+            r.sendBody(html_body) catch return;
+        }
     }
 
-    if (r.query) |the_query| {
-        std.debug.print("QUERY: {s}\n", .{the_query});
-    }
-    r.sendBody("<html><body><h1>Hello from ZAP!!!</h1><code>std = @import(\"std\")</code></body></html>") catch return;
+    // If route was not found, default to the home menu
+    r.sendBody("") catch return;
 }
+
+fn not_found(req: zap.Request) void {
+    std.debug.print("not found handler", .{});
+
+    req.sendBody("Not found") catch return;
+}
+
+fn openHomeHTML() !void {}
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
+
+    routes = std.StringHashMap([]const u8).init(allocator);
     // Record a rather girthy allotment for the buffer for reading files
     const buffer_size: u8 = @as(u8, std.math.maxInt(u8));
 
@@ -52,9 +70,10 @@ pub fn main() !void {
     };
     defer opened_dir.close();
 
-    // Create files with this. Not necessary right now
-    // const flags = std.fs.File.CreateFlags{};
-    // _ = try opened_dir.createFile("test.md", flags);
+    var simpleRouter = zap.Router.init(allocator, .{
+        .not_found = not_found,
+    });
+    defer simpleRouter.deinit();
 
     // Set all the iterators as vars to remove const allocation
     var iterator = opened_dir.iterateAssumeFirstIteration();
@@ -66,6 +85,7 @@ pub fn main() !void {
 
         // Capture each entry name, these will be the routes displayd
         print("{s}\n", .{entry.name});
+        const request_path = entry.name;
         const path = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ posts_path, entry.name });
 
         const file_data = try directory.readFile(path, file_buf);
@@ -79,19 +99,34 @@ pub fn main() !void {
         defer doc.deinit();
 
         const buffer = try allocator.alloc(u8, 1024); // adjust size based on expected data
-        defer allocator.free(buffer);
+        // defer allocator.free(buffer);
 
         var out_stream = std.io.fixedBufferStream(buffer);
         const writer = out_stream.writer();
 
         try koino.html.print(writer, allocator, options, doc);
 
-        print("{s}", .{out_stream.getWritten()});
+        // Replace MD
+        const request_path_simple = try allocator.alloc(u8, request_path.len - 3);
+        // defer allocator.free(request_path_simple);
+
+        _ = std.mem.replace(u8, request_path, ".md", "", request_path_simple);
+        print("{s}", .{request_path_simple});
+        // Add / into route
+        const request_route = try std.fmt.allocPrint(allocator, "/{s}", .{request_path_simple});
+
+        print("route should be at - {s}", .{request_route});
+        // Have a unbount func per each path, the fun will check the incoming route, match it to a StringHashMap of string html content to render to the user
+        try simpleRouter.handle_func_unbound(request_route, generic_request);
+        try routes.put(request_route, out_stream.getWritten());
+        // try simpleRouter.handle_func(request_path, &somePackage, &SomePackage.getA);
+
+        // print("{s}", .{out_stream.getWritten()});
     }
 
     var listener = zap.HttpListener.init(.{
         .port = 3000,
-        .on_request = on_request,
+        .on_request = simpleRouter.on_request_handler(), // use custom routes from above
         .log = true,
     });
     try listener.listen();
