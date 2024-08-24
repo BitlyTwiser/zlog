@@ -4,7 +4,7 @@ const koino = @import("koino");
 const print = std.debug.print;
 
 const posts_path: []const u8 = "./src/posts";
-
+const css_path: []const u8 = "<link rel=\"stylesheet\" href=\"html/styles.css\">";
 const options = .{
     .extensions = .{
         .autolink = true,
@@ -59,7 +59,7 @@ pub fn main() !void {
 
     routes = std.StringHashMap([]const u8).init(allocator);
     // Record a rather girthy allotment for the buffer for reading files
-    const buffer_size: u8 = @as(u8, std.math.maxInt(u8));
+    const buffer_size: u32 = 1024 * 1024 * 2;
 
     const directory = std.fs.cwd();
 
@@ -98,7 +98,7 @@ pub fn main() !void {
         var doc = try parser.finish();
         defer doc.deinit();
 
-        const buffer = try allocator.alloc(u8, 1024); // adjust size based on expected data
+        const buffer = try allocator.alloc(u8, buffer_size); // adjust size based on expected data
         // defer allocator.free(buffer);
 
         var out_stream = std.io.fixedBufferStream(buffer);

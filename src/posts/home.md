@@ -1,10 +1,28 @@
-# I AM A TEST!
 
-- Can I be seen? Do I render
+### CSS for Styling (Using a `<style>` tag in Markdown-rendered HTML)
 
-```
-A code block?
-```
+<!-- Menu Bar -->
+<nav style="background-color: #3498db; padding: 15px; text-align: center;">
+    <a href="index.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Home</a>
+    <a href="features.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Features</a>
+    <a href="blog.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Blog</a>
+    <a href="contact.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Contact</a>
+</nav>
+
+# Welcome to My Blog
+
+Welcome to the homepage of my personal blog! Here, you'll find various posts on tech, programming, and more.
+
+## Latest Blog Posts
+
+- [Post 1: Getting Started with Zig](post1.html)
+- [Post 2: Building a Static Site Generator](post2.html)
+- [Post 3: Exploring Rust and Go](post3.html)
+
+---
+
+Thank you for visiting my blog! Feel free to explore more content through the menu bar above.
+
 
 <style>
     /* Body Styling */
@@ -122,4 +140,23 @@ A code block?
         margin-top: 50px;
         border-radius: 10px;
     }
+
+    nav {
+        background-color: #3498db;
+        padding: 15px;
+        text-align: center;
+    }
+
+    nav a {
+        color: white;
+        text-decoration: none;
+        font-size: 1.2em;
+        margin: 0 15px;
+        transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+        color: #e74c3c;
+    }
+
 </style>
