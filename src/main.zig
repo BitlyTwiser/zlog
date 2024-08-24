@@ -5,6 +5,7 @@ const print = std.debug.print;
 
 const posts_path: []const u8 = "./src/posts";
 const css_path: []const u8 = "<link rel=\"stylesheet\" href=\"html/styles.css\">";
+
 const options = .{
     .extensions = .{
         .autolink = true,
@@ -42,8 +43,8 @@ fn generic_request(r: zap.Request) void {
         }
     }
 
-    // If route was not found, default to the home menu
-    r.sendBody("") catch return;
+    // If route was not found, default to not found. Eventually, make a 404 page or something
+    not_found(r);
 }
 
 fn not_found(req: zap.Request) void {
@@ -53,6 +54,9 @@ fn not_found(req: zap.Request) void {
 }
 
 fn openHomeHTML() !void {}
+
+// @ToDo(Clean up code, dynamically insert/parse the CSS and the header bar into the markdown pages, make cli tool for deploying. Find somewhere to host code)
+// Add timestamp to each article based on when the file was written - THis is a small comment on the markdown page itself perhaps??
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;

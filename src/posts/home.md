@@ -1,19 +1,19 @@
 
-### CSS for Styling (Using a `<style>` tag in Markdown-rendered HTML)
-
 <!-- Menu Bar -->
-<nav style="background-color: #3498db; padding: 15px; text-align: center;">
-    <a href="index.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Home</a>
-    <a href="features.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Features</a>
-    <a href="blog.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Blog</a>
-    <a href="contact.html" style="color: white; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Contact</a>
+<nav style="background-color: #d1d8e0; padding: 15px; text-align: center;">
+    <a href="index.html" style="color: #2f3542; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Home</a>
+    <a href="features.html" style="color: #2f3542; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Features</a>
+    <a href="blog.html" style="color: #2f3542; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Blog</a>
+    <a href="contact.html" style="color: #2f3542; text-decoration: none; font-size: 1.2em; margin: 0 15px;">Contact</a>
 </nav>
 
-# Welcome to My Blog
+Welcome to the homepage of my personal website. Here, you'll find various articles on things I find interesting, some oddball ruminations and other oddities.
 
-Welcome to the homepage of my personal blog! Here, you'll find various posts on tech, programming, and more.
 
-## Latest Blog Posts
+This site is very basic on purpose, its built using a small static site generate parsing markdown files, written entirely in Zig: [Check out the code here](https://github.com/BitlyTwiser/zlog)
+Its only purpose is to have some blogging medium and write some Zig. :)
+
+## Articles
 
 - [Post 1: Getting Started with Zig](post1.html)
 - [Post 2: Building a Static Site Generator](post2.html)
@@ -21,10 +21,188 @@ Welcome to the homepage of my personal blog! Here, you'll find various posts on 
 
 ---
 
-Thank you for visiting my blog! Feel free to explore more content through the menu bar above.
+Thank you for visiting my site, Feel free to explore more content through the menu bar above.
 
+Check out my [Github](https://github.com/BitlyTwiser)
 
 <style>
+/* Body Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    background-color: #e5e5e3; /* Light gray with a subtle hint of fleshy color */
+    color: #000000; /* Black text */
+    padding: 20px;
+    max-width: 900px; /* Limit the page width */
+    margin: 0 auto; /* Center the page content */
+}
+
+/* Compact Navigation Bar */
+nav {
+    background-color: #2b2b2b; /* Dark nav background */
+    padding: 10px 20px; /* Adjust padding for a compact look */
+    text-align: center;
+    border-radius: 10px; /* Rounded corners for a clean look */
+    max-width: 600px; /* Limit width of the nav bar */
+    margin: 0 auto 40px auto; /* Center the nav and add space below it */
+}
+
+nav a {
+    color: #e5e5e3; /* Light gray for nav links */
+    text-decoration: none;
+    font-size: 1em; /* Adjust size to make it more compact */
+    margin: 0 10px; /* Reduce the margin for a more compact layout */
+    padding: 8px 12px; /* Add some padding around each link */
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #d8d6d4; /* Slightly darker gray on hover */
+}
+
+/* Headers */
+h1, h2, h3 {
+    color: #000000; /* Black for headers */
+    text-align: center;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #2b2b2b; /* Dark gray */
+}
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #3b3b3b; /* Slightly lighter gray */
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+/* Center Articles */
+.article-content {
+    max-width: 700px; /* Limit the width of articles */
+    margin: 0 auto; /* Center the article content */
+    padding: 20px; /* Add padding around articles */
+}
+
+/* Links */
+a {
+    color: #3d3d3d; /* Muted gray for links */
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #606060; /* Slightly darker gray on hover */
+}
+
+/* Lists */
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul li {
+    background: #e0dedc; /* Subtle gray tone for list items */
+    margin: 10px 0;
+    padding: 10px;
+    border-left: 5px solid #2b2b2b; /* Darker gray accent */
+    transition: background-color 0.3s ease;
+}
+
+ul li:hover {
+    background: #d8d6d4; /* Darker gray tone on hover */
+}
+
+/* Code Blocks */
+pre {
+    background: #2e2e2e; /* Dark background for code blocks */
+    color: #f8f8f2; /* Light text for contrast */
+    padding: 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    overflow-x: auto;
+}
+
+code {
+    background: #dcdcdc; /* Light gray background for inline code */
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: #2e2e2e; /* Dark gray for code text */
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Horizontal Rule */
+hr {
+    border: none;
+    border-top: 2px solid #2b2b2b; /* Dark horizontal rule */
+    margin: 30px 0;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    background: #2b2b2b; /* Dark background for buttons */
+    color: #e5e5e3; /* Light gray text */
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background: #444444; /* Slightly lighter dark background on hover */
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #2b2b2b; /* Dark footer background */
+    color: #e5e5e3; /* Light gray text */
+    margin-top: 50px;
+    border-radius: 10px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #dcdcdc; /* Light gray background for tables */
+    color: #2b2b2b; /* Dark text */
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #2b2b2b; /* Darker border for table cells */
+}
+
+th {
+    background: #e0dedc; /* Slightly darker background for table headers */
+}
+
+td {
+    background: #f0efec;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+</style>
+
+<!-- <style>
     /* Body Styling */
     body {
         font-family: 'Roboto', sans-serif;
@@ -159,4 +337,4 @@ Thank you for visiting my blog! Feel free to explore more content through the me
         color: #e74c3c;
     }
 
-</style>
+</style> -->

@@ -35,7 +35,7 @@ h3 {
 
 /* Links */
 a {
-    color: #2980b9;
+    color: #2981b9;
     text-decoration: none;
     font-weight: bold;
     transition: color 0.2s ease;
@@ -112,4 +112,23 @@ footer {
     color: #ecf0f1;
     margin-top: 50px;
     border-radius: 10px;
+}
+
+
+nav {
+    background-color: #3498db;
+    padding: 15px;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2em;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #e74c3c;
 }
