@@ -195,8 +195,6 @@ fn setRoutes(allocator: std.mem.Allocator, simpleRouter: *zap.Router) !void {
     }
 }
 
-// @ToDo(Clean up code, dynamically insert/parse the CSS and the header bar into the markdown pages, make cli tool for deploying. Find somewhere to host code)
-// Add timestamp to each article based on when the file was written - THis is a small comment on the markdown page itself perhaps??
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 

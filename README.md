@@ -14,11 +14,26 @@ Otherwise, the code will generate the rest based on the data in the `posts` fold
 
 All you must do is add a post and the rest will be created for you :)
 
-## Notes:
-1. The name of the file in /posts is the title of the article.
-2. Add a timestmap to the article with a comment:
+## Notes/Usage:
+1. Home/Contact are standard files. You can change these however you like, but do not remove/rename them. :)
+2. Adding new blog posts, you must add the link into the `home.md` markdown like so:
+
 ```
-<!-- timestamp = 08/17/1996 -->
+## Articles
+
+- [Post 1: Test](./test_blog_post_1)
+- [Post 2: Building a Static Site Generator](post2.html)
+- [Post 3: Exploring Rust and Go](post3.html)
+
 ```
-3. Change the nav bar and styles.css to customize the site for your needs
-4. Change the 404.html to be whatever you want (unless you love the totally awesome page that currently exists)
+This is the only step that is not automatic. I figured, perhaps someone does not want articls and blogs, so I stopped auto injecting things into the home to allow for it to be generic. 
+If you hate this, let me know.
+
+3. Provide the title you wish and then just link the markdown location. Everything will be built in (routes etc..)
+
+## Uniquness:
+1. Change the nav bar and styles.css to customize the site for your needs if you so wish
+2. Change the 404.html to be whatever you want (unless you love the totally awesome page that currently exists!)
+
+## Bugs:
+- Using koino to parse the markdown -> HTML. There seems to be a bug if the first line in the markdown is not a space or other text. (i.e.) you cannot have the first line start with a markdown character like # etc.. else it will break rendering.
