@@ -21,4 +21,4 @@ All you must do is add a post and the rest will be created for you :)
 <!-- timestamp = 08/17/1996 -->
 ```
 3. Change the nav bar and styles.css to customize the site for your needs
-4. Change the 404.html to be whatever you want
+4. Change the 404.html to be whatever you want (unless you love the totally awesome page that currently exists)

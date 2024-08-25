@@ -5,8 +5,9 @@ const print = std.debug.print;
 
 const posts_path: []const u8 = "./src/posts";
 const html_path: []const u8 = "./src/html";
-const css_path_file: []const u8 = "./src/html/styles.css";
-const nav_bar_path: []const u8 = "./src/html/nav_bar.html";
+const css_path_file: []const u8 = html_path ++ "/styles.css";
+const nav_bar_path: []const u8 = html_path ++ "/nav_bar.html";
+const not_found_path: []const u8 = html_path ++ "/404.html";
 const css_path_dynamic: []const u8 = "<link rel=\"stylesheet\" href=\"html/styles.css\">";
 
 const options = .{
@@ -42,6 +43,7 @@ const NotFound = error{PostsNotFound};
 const InjectionType = enum {
     CSS,
     NavBar,
+    NotFound,
 
     fn path(self: InjectionType) []const u8 {
         switch (self) {
@@ -50,6 +52,9 @@ const InjectionType = enum {
             },
             .NavBar => {
                 return nav_bar_path;
+            },
+            .NotFound => {
+                return not_found_path;
             },
         }
     }
@@ -61,6 +66,9 @@ const InjectionType = enum {
             },
             .NavBar => {
                 return 900;
+            },
+            .NotFound => {
+                return 1024 * 2;
             },
         }
     }
@@ -95,7 +103,11 @@ fn generic_request(r: zap.Request) void {
 }
 
 fn not_found(req: zap.Request) void {
-    req.sendBody("Not found") catch return;
+    const allocator = std.heap.page_allocator;
+    const not_found_body = allocateAndReturnFileData(allocator, InjectionType.NotFound) catch "Not found";
+    defer allocator.free(not_found_body);
+
+    req.sendBody(not_found_body) catch return;
 }
 
 fn allocateAndReturnFileData(allocator: std.mem.Allocator, i_type: InjectionType) ![]u8 {
@@ -105,11 +117,12 @@ fn allocateAndReturnFileData(allocator: std.mem.Allocator, i_type: InjectionType
     const bytes_read = try dir.readFile(i_type.path(), file_buf);
 
     const reallocated_buf = try allocator.realloc(file_buf, bytes_read.len);
-    // RE-alloc to fit how many bytes were actually read
+    // RE-alloc to fit how many bytes were actually read to avoid null-bytes
     if (i_type == InjectionType.CSS) {
         const css_data = try std.fmt.allocPrint(allocator, "<style>\n{s}\n</style>", .{reallocated_buf});
         return try allocator.realloc(css_data, bytes_read.len);
     }
+
     return reallocated_buf;
 }
 
@@ -137,9 +150,6 @@ fn setRoutes(allocator: std.mem.Allocator, simpleRouter: *zap.Router) !void {
 
     var iterator = opened_dir.opened_directory.iterateAssumeFirstIteration();
     while (try iterator.next()) |entry| {
-        // std.fmt.bufPrint(buf: []u8, comptime fmt: []const u8, args: anytype)
-        // const file_buf: []u8 = undefined;
-
         const file_buf = try allocator.alloc(u8, buffer_size);
 
         // Capture each entry name, these will be the routes displayd
