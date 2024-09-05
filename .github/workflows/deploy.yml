@@ -25,8 +25,7 @@ jobs:
       # Step 3: Install Zig
       - name: Install Zig
         run: |
-          sudo apt-get update -y 
-          sudo apt-get install -y zig
+          snap install zig --classic --beta
 
       # Step 4: Build the Zig binary
       - name: Build binary
