@@ -25,18 +25,18 @@ jobs:
       # Step 3: Install Zig
       - name: Install Zig
         run: |
-          sudo apt-get update
+          sudo apt-get update -y 
           sudo apt-get install -y zig
 
       # Step 4: Build the Zig binary
       - name: Build binary
         run: |
-          zig build-exe src/main.zig -O ReleaseFast -o my_app
+          zig build-exe src/main.zig -O ReleaseFast -o zlog 
 
       # Step 5: Zip assets, binary, and config files into a single zip
       - name: Zip assets and binary
         run: |
-          zip -r ${{ env.ARTIFACT_NAME }}.zip my_app www config
+          zip -r ${{ env.ARTIFACT_NAME }}.zip zlog html posts 
 
       # Step 6: Upload the release artifact with a unique name
       - name: Upload release asset
@@ -62,13 +62,13 @@ jobs:
       - name: Restart application on server
         run: |
           ssh -i ~/.ssh/id_ed25519 -p 22 ${{ secrets.ARTIFACT_USERNAME }}@${{ secrets.ARTIFACT_HOST }} << 'EOF'
-            # Kill the running process (adjust as necessary for your process)
-            pkill -f my_app || true
+            # Kill the running process so we can restart for newest changes
+            pkill -f zlog || true
 
             # Navigate to the deployment directory and unzip the artifact
             cd ~/path/to/destination
             unzip -o ${{ env.ARTIFACT_NAME }}.zip
 
-            # Start the new binary (use nohup if you want it to run in the background)
-            ./my_app &
+            # Start the new binary 
+            ./zlog &
           EOF
