@@ -1,0 +1,74 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main  
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set a unique name for the artifact using the commit SHA
+      - name: Set unique artifact name
+        run: echo "ARTIFACT_NAME=my_app_bundle_${{ github.sha }}" >> $GITHUB_ENV
+
+      # Step 3: Install Zig
+      - name: Install Zig
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zig
+
+      # Step 4: Build the Zig binary
+      - name: Build binary
+        run: |
+          zig build-exe src/main.zig -O ReleaseFast -o my_app
+
+      # Step 5: Zip assets, binary, and config files into a single zip
+      - name: Zip assets and binary
+        run: |
+          zip -r ${{ env.ARTIFACT_NAME }}.zip my_app www config
+
+      # Step 6: Upload the release artifact with a unique name
+      - name: Upload release asset
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.ARTIFACT_NAME }}.zip
+
+      # Step 7: Set up SSH key for secure deployment
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ARTIFACT_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p 22 -t ed25519 ${{ secrets.ARTIFACT_HOST }} >> ~/.ssh/known_hosts
+
+      # Step 8: Deploy the artifact to the server using rsync
+      - name: Deploy artifact using rsync
+        run: |
+          rsync -azP -e "ssh -i $HOME/.ssh/id_ed25519 -p 22" ./${{ env.ARTIFACT_NAME }}.zip ${{ secrets.ARTIFACT_USERNAME }}@${{ secrets.ARTIFACT_HOST }}:~/path/to/destination/${{ env.ARTIFACT_NAME }}.zip
+
+      # Step 9: SSH into the server, kill the process, unzip the artifact, and restart the app
+      - name: Restart application on server
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p 22 ${{ secrets.ARTIFACT_USERNAME }}@${{ secrets.ARTIFACT_HOST }} << 'EOF'
+            # Kill the running process (adjust as necessary for your process)
+            pkill -f my_app || true
+
+            # Navigate to the deployment directory and unzip the artifact
+            cd ~/path/to/destination
+            unzip -o ${{ env.ARTIFACT_NAME }}.zip
+
+            # Start the new binary (use nohup if you want it to run in the background)
+            ./my_app &
+EOF

@@ -30,6 +30,7 @@ This is the only step that is not automatic. I figured, perhaps someone does not
 If you hate this, let me know.
 
 3. Provide the title you wish and then just link the markdown location. Everything will be built in (routes etc..)
+4. Restart the webserver and all changes/articles etc.. will be present straight away.
 
 ## Uniquness:
 1. Change the nav bar and styles.css to customize the site for your needs if you so wish
