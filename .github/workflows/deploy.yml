@@ -71,4 +71,4 @@ jobs:
 
             # Start the new binary (use nohup if you want it to run in the background)
             ./my_app &
-EOF
+          EOF
