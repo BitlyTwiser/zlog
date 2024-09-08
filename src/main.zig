@@ -210,13 +210,13 @@ pub fn main() !void {
     try setRoutes(allocator, &simpleRouter);
 
     var listener = zap.HttpListener.init(.{
-        .port = 3000,
+        .port = 80,
         .on_request = simpleRouter.on_request_handler(), // use custom routes from above
         .log = true,
     });
     try listener.listen();
 
-    std.debug.print("Listening on 0.0.0.0:3000\n", .{});
+    std.debug.print("Listening on 0.0.0.0:80\n", .{});
 
     // start worker threads
     zap.start(.{

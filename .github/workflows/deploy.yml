@@ -7,67 +7,34 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+
+env:
+  IMAGE_NAME: zlog_docker 
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    # Build docker image, push to container registry. The other side just needs to run:
+    # docker pull ghcr.io/NAMESPACE/IMAGE_NAME:latest. Unsure how to get here, but working on that
     steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # Step 1: Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Step 2: Set a unique name for the artifact using the commit SHA
-      - name: Set unique artifact name
-        run: echo "ARTIFACT_NAME=my_app_bundle_${{ github.sha }}" >> $GITHUB_ENV
-
-      # Step 3: Install Zig
-      - name: Install Zig
+      - name: Push image
         run: |
-          sudo snap install zig --classic --beta
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
-      # Step 4: Build the Zig binary
-      - name: Build binary
-        run: |
-          zig build-exe src/main.zig -O ReleaseFast -o zlog 
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
-      # Step 5: Zip assets, binary, and config files into a single zip
-      - name: Zip assets and binary
-        run: |
-          zip -r ${{ env.ARTIFACT_NAME }}.zip zlog html posts 
-
-      # Step 6: Upload the release artifact with a unique name
-      - name: Upload release asset
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.ARTIFACT_NAME }}.zip
-
-      # Step 7: Set up SSH key for secure deployment
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.ARTIFACT_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p 22 -t ed25519 ${{ secrets.ARTIFACT_HOST }} >> ~/.ssh/known_hosts
-
-      # Step 8: Deploy the artifact to the server using rsync
-      - name: Deploy artifact using rsync
-        run: |
-          rsync -azP -e "ssh -i $HOME/.ssh/id_ed25519 -p 22" ./${{ env.ARTIFACT_NAME }}.zip ${{ secrets.ARTIFACT_USERNAME }}@${{ secrets.ARTIFACT_HOST }}:~/path/to/destination/${{ env.ARTIFACT_NAME }}.zip
-
-      # Step 9: SSH into the server, kill the process, unzip the artifact, and restart the app
-      - name: Restart application on server
-        run: |
-          ssh -i ~/.ssh/id_ed25519 -p 22 ${{ secrets.ARTIFACT_USERNAME }}@${{ secrets.ARTIFACT_HOST }} << 'EOF'
-            # Kill the running process so we can restart for newest changes
-            pkill -f zlog || true
-
-            # Navigate to the deployment directory and unzip the artifact
-            cd ~/path/to/destination
-            unzip -o ${{ env.ARTIFACT_NAME }}.zip
-
-            # Start the new binary 
-            ./zlog &
-          EOF
+          [ "$VERSION" == "main" ] && VERSION=latest
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
