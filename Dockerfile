@@ -19,6 +19,6 @@ RUN zig build
 
 RUN chmod +x ./zig-out/bin/zlog
 
-EXPOSE 80
+EXPOSE 3000
 
 CMD ["./zig-out/bin/zlog"]
