@@ -1,6 +1,8 @@
 # zlog
 A personal blog for the lazy, written purely in Zig, Markdown, and HTML
 
+See it in action: https://bitlytwiser.com
+
 ## Goals:
 The goal of this project is a small, simple blog written purely in zig, markdown, and some HTML using some type of static site generation tool. 
 
